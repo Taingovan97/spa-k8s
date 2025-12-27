@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spa-api-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: spa-api-gateway
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+  type: {{ .Values.service.type }}

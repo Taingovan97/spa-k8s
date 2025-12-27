@@ -1,0 +1,20 @@
+namespace: spa
+
+replicaCount: 2
+
+image:
+  repository: spa-api-gateway
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+  type: ClusterIP
+
+keycloak:
+  issuerUri: "http://host.docker.internal:18081/realms/spa-booking"
+
+config:
+  routes:
+    userPath: /user/**
+    userUri: http://spa-user-service:8082

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spa-api-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: spa-api-gateway
+  template:
+    metadata:
+      labels:
+        app: spa-api-gateway
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+
+          envFrom:
+            - secretRef:
+                name: spa-keycloak-secret
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: file:/app/config/
+
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+
+      volumes:
+        - name: config
+          configMap:
+            name: spa-api-gateway-config
+            items:
+              - key: application-k8s.yml
+                path: application-k8s.yml
