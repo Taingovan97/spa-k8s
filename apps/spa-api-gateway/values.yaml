@@ -18,3 +18,5 @@ config:
   routes:
     userPath: /user/**
     userUri: http://spa-user-service:8082
+    catalogPath: /catalog/**
+    catalogUri: http://spa-catalog-service:8083
