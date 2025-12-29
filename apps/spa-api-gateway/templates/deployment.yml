@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spa-api-gateway
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -27,14 +27,7 @@ spec:
 
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: k8s
-            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
-              value: file:/app/config/
-
-          volumeMounts:
-            - name: config
-              mountPath: /app/config
-              readOnly: true
+              value: {{ .Values.spring.profile | quote }}
 
           readinessProbe:
             httpGet:
@@ -49,11 +42,3 @@ spec:
               port: {{ .Values.service.port }}
             initialDelaySeconds: 30
             periodSeconds: 15
-
-      volumes:
-        - name: config
-          configMap:
-            name: spa-api-gateway-config
-            items:
-              - key: application-k8s.yml
-                path: application-k8s.yml
