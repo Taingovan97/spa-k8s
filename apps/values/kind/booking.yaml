@@ -1,0 +1,17 @@
+nameOverride: spa-booking-service
+
+image:
+  repository: spa-booking-service
+  tag: dev
+
+service:
+  port: 8084
+
+spring:
+  profile: k8s-kind
+
+envFrom:
+- secretRef:
+    name: spa-keycloak-secret
+- secretRef:
+    name: spa-booking-db-secret

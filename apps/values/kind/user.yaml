@@ -1,0 +1,17 @@
+nameOverride: spa-user-service
+
+image:
+  repository: spa-user-service
+  tag: dev
+
+service:
+  port: 8082
+
+spring:
+  profile: k8s-kind
+
+envFrom:
+- secretRef:
+    name: spa-keycloak-secret
+- secretRef:
+    name: spa-user-db-secret

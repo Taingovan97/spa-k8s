@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spa.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "spa.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spa.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spa.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ required "image.repository is required" .Values.image.repository }}:{{ required "image.tag is required" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+
+          env:
+            {{- if .Values.spring.profile }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.spring.profile | quote }}
+            {{- end }}
+
+            {{- if and .Values.config.enabled .Values.config.additionalLocation }}
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: "file:{{ .Values.config.mountPath }}/"
+            {{- end }}
+
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+
+          {{- if .Values.envFrom }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.config.enabled }}
+          volumeMounts:
+            - name: config
+              mountPath: {{ .Values.config.mountPath }}
+              readOnly: true
+          {{- if .Values.config.additionalLocation }}
+          env:
+            {{- if .Values.spring.profile }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.spring.profile | quote }}
+            {{- end }}
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: "file:{{ .Values.config.mountPath }}/"
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+
+          {{- if .Values.probes.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readinessPath }}
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            timeoutSeconds: 1
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessPath }}
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 1
+            failureThreshold: 3
+          {{- end }}
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      {{- if .Values.config.enabled }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "spa.fullname" . }}-config
+      {{- end }}

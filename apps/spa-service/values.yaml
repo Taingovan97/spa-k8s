@@ -1,0 +1,52 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+spring:
+  profile: ""          # e.g. local | k8s | k8s-cloud
+
+env: []                # list of {name: , value: }
+envFrom: []            # list of {secretRef: {name: }} or {configMapRef: {name: }}
+
+config:
+  enabled: false
+  mountPath: /app/config
+  data: {}             # key: fileName, value: |-
+  additionalLocation: true
+
+probes:
+  enabled: true
+  readinessPath: /actuator/health/readiness
+  livenessPath: /actuator/health/liveness
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+ingress:
+  enabled: false
+  className: nginx
+  hosts: []
+  tls: []
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70

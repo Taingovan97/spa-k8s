@@ -1,0 +1,17 @@
+nameOverride: spa-catalog-service
+
+image:
+  repository: spa-catalog-service
+  tag: dev
+
+service:
+  port: 8083
+
+spring:
+  profile: k8s-kind
+
+envFrom:
+- secretRef:
+    name: spa-keycloak-secret
+- secretRef:
+    name: spa-catalog-db-secret

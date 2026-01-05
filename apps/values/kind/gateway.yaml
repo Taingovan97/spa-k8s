@@ -1,0 +1,15 @@
+nameOverride: spa-api-gateway
+
+image:
+  repository: spa-api-gateway
+  tag: dev
+
+service:
+  port: 8080
+
+spring:
+  profile: k8s
+
+envFrom:
+- secretRef:
+    name: spa-keycloak-secret
